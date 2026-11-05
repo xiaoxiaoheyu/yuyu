@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+config.json
+memory.md
+memory.jsonl
+seen.json
+*.log
+logs/
+data/
+.DS_Store
+Thumbs.db
