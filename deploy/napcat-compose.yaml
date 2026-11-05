@@ -1,0 +1,17 @@
+services:
+  napcat:
+    image: hub.rat.dev/mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: unless-stopped
+    environment:
+      - NAPCAT_UID=0
+      - NAPCAT_GID=0
+      # 打开 WebUI 要用的密码，换成你自己的随机串
+      - WEBUI_TOKEN=change-me-please
+    ports:
+      - "6099:6099"   # WebUI：扫码、看日志
+      - "3001:3001"   # OneBot WebSocket：插件和私聊桥连这里
+      - "3000:3000"   # OneBot HTTP（可不用）
+    volumes:
+      - ./data:/app/napcat/config
+      - ./qq:/app/.config/QQ

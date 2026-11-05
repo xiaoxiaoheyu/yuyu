@@ -44,6 +44,8 @@ persona.example.md      人设模板
 
 ## 快速开始
 
+> 第一次部署？直接看 **[docs/getting-started.md](docs/getting-started.md)**，那是一份带检查点的分步清单。
+
 ### 0. 前置
 
 | 需要 | 说明 |
