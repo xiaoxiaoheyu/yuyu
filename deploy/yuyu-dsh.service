@@ -1,0 +1,16 @@
+[Unit]
+Description=Yuyu DSH web
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/yuyu
+ExecStart=/usr/bin/npx --yes @deepseek-ai/dsh web --port 3080 --no-open
+Restart=always
+RestartSec=10
+Environment=DSH_HOME=/root/.dsh
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
