@@ -166,14 +166,21 @@ function connect() {
     if (data.post_type === 'message') handleMessage(data).catch((e) => log('处理失败：', e.message));
   };
 
-  ws.onclose = () => {
-    const wait = Math.min(1000 * 2 ** retry, 30_000);
-    retry += 1;
-    log(`${wait}ms 后重连…`);
-    setTimeout(connect, wait);
-  };
+  ws.onclose = () => scheduleReconnect('连接断开');
+  ws.onerror = () => scheduleReconnect('连接出错');
+}
 
-  ws.onerror = () => {};
+/* 断线重连：onerror 不一定会触发 onclose，所以两个都挂上，用单例计时器去重 */
+let reconnectTimer = null;
+function scheduleReconnect(reason) {
+  if (reconnectTimer) return;
+  const wait = Math.min(1000 * 2 ** retry, 30_000);
+  retry += 1;
+  log(`${reason}，${wait}ms 后重连…`);
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connect();
+  }, wait);
 }
 
 function call(action, params = {}) {
