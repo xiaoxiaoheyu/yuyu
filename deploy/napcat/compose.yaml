@@ -1,0 +1,31 @@
+services:
+  napcat:
+    # 2026-11-10：从 :latest 改成固定版本（官方 NapCat v4.18.42，2026-10-30 发布）
+    #   理由：latest 会漂移，旧版协议端被踢线的概率更高；固定版本便于回滚和复现
+    image: docker.m.daocloud.io/mlikiowa/napcat-docker:v4.18.42
+    container_name: napcat
+    restart: unless-stopped
+    environment:
+      - NAPCAT_UID=0
+      - NAPCAT_GID=0
+      - WEBUI_TOKEN=4b271860b41e495db4ba93a1
+      # 2026-11-10：快速登录 —— entrypoint 里有 ACCOUNT 时执行 `qq -q $ACCOUNT`，
+      # 用 ./qq 里保存的登录态直接上线，容器重启/掉线后不用再扫码
+      - ACCOUNT=1830943645
+      - TZ=Asia/Shanghai
+    ports:
+      # 2026-11-10：全部只绑本机 —— 6099/3001/3000 不再暴露公网
+      - "127.0.0.1:6099:6099"   # WebUI（扫码 / 看日志），走 ssh -L 访问
+      - "127.0.0.1:3001:3001"   # OneBot WebSocket（relay / bridge 连这里）
+      - "127.0.0.1:3000:3000"   # OneBot HTTP（守护脚本做健康检查用）
+    volumes:
+      - ./data:/app/napcat/config
+      - ./qq:/app/.config/QQ
+    # 2026-11-10：资源与日志约束，避免和 DSH 抢内存被 OOM
+    mem_limit: 1536m
+    shm_size: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

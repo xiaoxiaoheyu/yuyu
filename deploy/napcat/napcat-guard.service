@@ -1,0 +1,9 @@
+[Unit]
+Description=NapCat health guard (one-shot)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/napcat-guard/guard.sh
+TimeoutStartSec=180
