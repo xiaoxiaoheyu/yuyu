@@ -38,6 +38,23 @@ reconnect_relay() {
   say "已请求群 relay 重连"
 }
 
+# 2026-11-11：NapCat 在线但群 relay 掉线的情况，平时也要查（不是只在"恢复"那一刻）
+ensure_relay() {
+  local token status
+  token=$(journalctl -u yuyu-dsh --no-pager 2>/dev/null | grep -o 'token=[A-Za-z0-9_-]*' | tail -1 | cut -d= -f2)
+  [ -n "$token" ] || return 0
+  status=$(curl -s --max-time 6 "http://127.0.0.1:3080/dsh-qq-relay/api/status?token=$token" 2>/dev/null || true)
+  case "$status" in
+    *'"connected":true'*) return 0 ;;
+    *'"connected":false'*)
+      say "NapCat 在线但群 relay 未连接 → 重连"
+      curl -s -o /dev/null --max-time 6 -X POST \
+        "http://127.0.0.1:3080/dsh-qq-relay/api/reconnect?token=$token" \
+        -H 'content-type: application/json' -d '{}' || true
+      ;;
+  esac
+}
+
 # ---- 0) 容器存活 ----
 running=$(docker inspect -f '{{.State.Running}}' napcat 2>/dev/null || echo false)
 if [ "$running" != "true" ]; then
@@ -72,6 +89,7 @@ if [ "$rc" -eq 0 ]; then
     "$NODE" "$BASE/guard.mjs" notify "🐟 NapCat 刚才掉线了，我已经自动重启并恢复正常，QQ 现在能正常收发啦～" >/dev/null 2>&1 || true
     reconnect_relay
   fi
+  ensure_relay
   exit 0
 fi
 
